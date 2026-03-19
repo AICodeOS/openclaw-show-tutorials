@@ -1,0 +1,27 @@
+name: Deploy to Aliyun OSS
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v3.0
+        with:
+          endpoint: ${{ secrets.OSS_ENDPOINT }}
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+
+      - name: Prepare files
+        run: |
+          mkdir -p dist
+          cp index.json dist/
+          cp tutorials/*.md dist/
+
+      - name: Sync to OSS
+        run: ossutil sync dist/ oss://${{ secrets.OSS_BUCKET_NAME }}/docs/ --delete
